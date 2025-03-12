@@ -13,17 +13,39 @@
 	import ErrorComponent from '$lib/components/shared/Error.svelte';
 
 	/**
+	 * Constants for API URL and local storage key
+	 */
+	const API__URL = 'https://jsonplaceholder.typicode.com/posts';
+	const STORAGE__KEY = 'cachedPosts';
+
+	/**
 	 * Load data
 	 * @description Метод для получения постов
 	 */
 	const loadData = async () => {
-		const response = await PostsApi.getAll();
+		try {
+			const response = await PostsApi.getAll();
 
-		if (!response.success) {
-			throw new Error(getReasonPhrase(response.data.code));
+			if (!response.success) {
+				throw new Error(getReasonPhrase(response.data.code));
+			}
+
+			alert('Данные загружены из API.');
+
+			// Save posts to local storage
+			localStorage.setItem(STORAGE__KEY, JSON.stringify(response.data));
+
+			return response.data;
+		} catch (error) {
+			// Try to load posts from local storage
+			const cachedPosts = localStorage.getItem(STORAGE__KEY);
+			if (cachedPosts) {
+				alert('Данные загружены из кеша.');
+				return JSON.parse(cachedPosts);
+			} else {
+				throw new Error('Нет данных для отображения.');
+			}
 		}
-
-		return response.data;
 	};
 
 </script>
